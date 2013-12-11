@@ -1,13 +1,12 @@
 /*
  * jQuery Plugin: Tokenizing Autocomplete Text Entry
- * Version 1.6.1
+ * Version 1.6.2
  *
  * Copyright (c) 2009 James Smith (http://loopj.com)
  * Licensed jointly under the GPL and MIT licenses,
  * choose which one suits your project best!
  *
  */
-
 (function ($) {
 // Default settings
 var DEFAULT_SETTINGS = {
@@ -34,6 +33,9 @@ var DEFAULT_SETTINGS = {
     theme: null,
     zindex: 999,
     resultsLimit: null,
+    parentInput: null,// custom variables
+    fieldName: null,// custom variables
+
 
     enableHTML: false,
 
@@ -191,6 +193,8 @@ $.fn.tokenInput = function (method) {
         return methods.init.apply(this, arguments);
     }
 };
+
+
 
 // TokenList class for each input
 $.TokenList = function (input, url_or_data, settings) {
@@ -464,6 +468,7 @@ $.TokenList = function (input, url_or_data, settings) {
         $.each(li_data, function (index, value) {
             insert_token(value);
             checkTokenLimit();
+            addHiddenField(value);
             input_box.attr("placeholder", null)
         });
     }
@@ -562,7 +567,7 @@ $.TokenList = function (input, url_or_data, settings) {
         // Get width left on the current line
         var width_left = token_list.width() - input_box.offset().left - token_list.offset().left;
         // Enter new content into resizer and resize input accordingly
-        input_resizer.html(_escapeHTML(input_val) || _escapeHTML(settings.placeholder));
+        input_resizer.html(_escapeHTML(input_val));
         // Get maximum width, minimum the size of input and maximum the widget's width
         input_box.width(Math.min(token_list.width(),
                                  Math.max(width_left, input_resizer.width() + 30)));
@@ -591,6 +596,21 @@ $.TokenList = function (input, url_or_data, settings) {
           add_token(object);
         });
     }
+
+    //added these functions so that posted as array instead of string
+    function addHiddenField(item){
+        $('<input>').attr({
+            type: 'hidden',
+            id: "item_" + item.id,
+            name: escapeHTML($(input).data("settings").fieldName),
+            value: item.id
+        }).appendTo(escapeHTML($(input).data("settings").parentInput));
+    }
+    function removeHiddenField(item){
+        $('#item_' + item.id).remove();
+    }
+    // custom functions end here
+
 
     // Inner function to a token to the list
     function insert_token(item) {
@@ -641,6 +661,7 @@ $.TokenList = function (input, url_or_data, settings) {
     function add_token (item) {
         var callback = $(input).data("settings").onAdd;
 
+
         // See if the token already exists and select it if we don't want duplicates
         if(token_count > 0 && $(input).data("settings").preventDuplicates) {
             var found_existing_token = null;
@@ -677,6 +698,9 @@ $.TokenList = function (input, url_or_data, settings) {
 
         // Don't show the help dropdown, they've got the idea
         hide_dropdown();
+
+
+        addHiddenField(item); //custom function call
 
         // Execute the onAdd callback if defined
         if($.isFunction(callback)) {
@@ -744,6 +768,8 @@ $.TokenList = function (input, url_or_data, settings) {
 
         // Delete the token
         token.remove();
+        removeHiddenField(token_data); //custom class call
+
         selected_token = null;
 
         // Show the input box and give it focus again
@@ -783,7 +809,6 @@ $.TokenList = function (input, url_or_data, settings) {
             return el[$(input).data("settings").tokenValue];
         });
         hidden_input.val(token_values.join($(input).data("settings").tokenDelimiter));
-
     }
 
     // Hide and clear the results dropdown
@@ -985,11 +1010,6 @@ $.TokenList = function (input, url_or_data, settings) {
                   }
                 };
 
-                // Provide a beforeSend callback
-                if (settings.onSend) {
-                  settings.onSend(ajax_params);
-                }
-
                 // Make the request
                 $.ajax(ajax_params);
             } else if($(input).data("settings").local_data) {
@@ -1058,4 +1078,3 @@ $.TokenList.Cache = function (options) {
     };
 };
 }(jQuery));
-
