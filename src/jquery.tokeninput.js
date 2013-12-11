@@ -6,6 +6,12 @@
  * Licensed jointly under the GPL and MIT licenses,
  * choose which one suits your project best!
  *
+ * This is a modified version of the original and 
+ * posts tokens as an array instead of a comma
+ * seperated list. 
+ *
+ * Can be found at https://github.com/Papercloud/jquery-tokeninput
+ *
  */
 (function ($) {
 // Default settings
